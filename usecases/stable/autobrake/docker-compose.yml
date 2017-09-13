@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+    odsupercomponent:
+        build: .
+        network_mode: "host"
+        volumes:
+        - .:/opt/opendlv.data
+        command: "/opt/od4/bin/odsupercomponent --cid=${CID} --verbose=1 --configuration=/opt/opendlv.data/configuration"
+
+    proxy-cfsd18-groundspeeed:
+        build: .
+        network_mode: "host"
+        command: "/opt/opendlv.cfsd18/bin/opendlv-proxy-cfsd18-groundspeed --cid=${CID} --freq=10 --id=1"
+
+    logic-cfsd18-autobrake:
+        build: .
+        network_mode: "host"
+        command: "/opt/opendlv.cfsd18/bin/opendlv-logic-cfsd18-autobrake --cid=${CID} --id=1"

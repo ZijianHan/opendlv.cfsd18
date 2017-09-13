@@ -78,11 +78,10 @@ void AutoBrake::nextContainer(odcore::data::Container &a_container)
 */
 void AutoBrake::setUp()
 {
-  std::string const name = getKeyValueConfiguration().getValue<std::string>(
-        "logic-cfsd18-autobrake.name");
+  std::string const speedThreshold = getKeyValueConfiguration().getValue<std::string>("logic-cfsd18-autobrake.speedThreshold");
 
   if (isVerbose()) {
-    std::cout << "Name: " << name << std::endl;
+    std::cout << "SpeedThreshold: " << speedThreshold << std::endl;
   }
 }
 
@@ -101,6 +100,7 @@ void AutoBrake::TriggerAutobrake(double vehicleSpeed)
 
     odcore::data::Container actuationRequestContainer(actuationRequest);
     getConference().send(actuationRequestContainer);
+    std::cout << "AutoBrake Acceleration : " << autobrakeAcceleration << std::endl;
 
   }
   else
@@ -112,6 +112,7 @@ void AutoBrake::TriggerAutobrake(double vehicleSpeed)
 
     odcore::data::Container actuationRequestContainer(actuationRequest);
     getConference().send(actuationRequestContainer);
+    std::cout << "AutoBrake Acceleration : " << autobrakeAcceleration << std::endl;
 
   }
   

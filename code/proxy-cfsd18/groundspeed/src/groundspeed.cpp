@@ -82,11 +82,11 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode GroundSpeed::body()
 
 void GroundSpeed::setUp()
 {
-  std::string const name = getKeyValueConfiguration().getValue<std::string>(
-        "proxy-cfsd18-groundspeed.name");
+  std::string const groundSpeedConst = getKeyValueConfiguration().getValue<std::string>("proxy-cfsd18-groundspeed.groundSpeedConst");
+  //m_groundSpeed = groundSpeedConst;
 
   if (isVerbose()) {
-    std::cout << "Name: " << name << std::endl;
+    std::cout << "GroundSpeedConst: " << groundSpeedConst << std::endl;
   }
 }
 
