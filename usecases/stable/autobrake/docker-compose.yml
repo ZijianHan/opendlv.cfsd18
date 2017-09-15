@@ -8,6 +8,29 @@ services:
         - .:/opt/opendlv.data
         command: "/opt/od4/bin/odsupercomponent --cid=${CID} --verbose=1 --configuration=/opt/opendlv.data/configuration"
 
+    odsimirus:
+        build: .
+        network_mode: "host"
+        volumes:
+        - .:/opt/opendlv.data
+        depends_on:
+            - odsupercomponent
+        command: "/opt/od4/bin/odsimirus --cid=${CID} --freq=10"
+
+    odcockpit:
+        build: .
+        network_mode: "host"
+        environment:
+        - DISPLAY=$DISPLAY
+        volumes:
+        - /tmp/.X11-unix:/tmp/.X11-unix
+        - .:/opt/opendlv.data
+        ipc: host
+        user: odv
+        depends_on:
+            - odsupercomponent
+        command: "/opt/od4/bin/odcockpit --cid=${CID}"
+
     proxy-cfsd18-groundspeeed:
         build: .
         network_mode: "host"

@@ -80,3 +80,6 @@ proxy-cfsd18-groundspeed.groundSpeedConst = 100/3.6;
 #
 
 logic-cfsd18-autobrake.speedThreshold = 80/3.6;
+
+
+odcockpit.directoriesForSharedLibaries = /opt/opendlv.cfsd18

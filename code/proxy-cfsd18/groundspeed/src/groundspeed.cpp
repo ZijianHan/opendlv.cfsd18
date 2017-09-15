@@ -19,11 +19,14 @@
 
 #include <iostream>
 
+#include <opendavinci/odcore/base/Mutex.h>
 #include <opendavinci/odcore/base/Lock.h>
 #include <opendavinci/odcore/data/Container.h>
 #include <opendavinci/odcore/data/TimeStamp.h>
 #include <opendavinci/odcore/strings/StringToolbox.h>
 #include <opendavinci/odcore/wrapper/Eigen.h>
+#include <opendavinci/generated/odcockpit/SimplePlot.h>
+#include <opendavinci/generated/odcockpit/RuntimeConfiguration.h>
 
 #include "groundspeed.hpp"
 
@@ -43,22 +46,15 @@ GroundSpeed::~GroundSpeed()
 
 void GroundSpeed::nextContainer(odcore::data::Container &/*a_container*/)
 {
-	/*
-	odcore::base::Lock l(m_mutex);
-
+	
+	//odcore::base::Lock l(m_mutex);
+/*
 	int32_t dataType = a_container.getDataType();
-	if (dataType == opendlv::proxy::GroundSpeedReading::ID()) {
-	    auto groundSpeed = a_container.getData<opendlv::proxy::GroundSpeedReading>();*/
-	         /* auto propulsion = c.getData<opendlv::proxy::rhino::Propulsion>();
-	          const double groundSpeedKph = static_cast<double>(propulsion.getPropulsionShaftVehicleSpeed());
-	          const double groundSpeed = groundSpeedKph / 3.6;*/
-
-	          /*opendlv::proxy::GroundSpeedReading groundSpeedReading;
-	          groundSpeedReading.setGroundSpeed(groundSpeed);
-
-	          Container groundSpeedReadingContainer = Container(groundSpeedReading);
-	          getConference().send(groundSpeedReadingContainer);
-  }*/
+	if (dataType == opendlv::proxy::ActuationRequest::ID()) {
+	    auto actuationRequestRead = a_container.getData<opendlv::proxy::ActuationRequest>();  
+        const double acceleration = static_cast<double>(actuationRequestRead.getGroundSpeed());
+        m_groundSpeed += acceleration*0.1;
+    }*/
   
 }
 
@@ -68,6 +64,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode GroundSpeed::body()
       odcore::data::dmcp::ModuleStateMessage::RUNNING) {
 
 //      Eigen::AngleAxisd deltaRollAngle(deltaRoll, Eigen::Vector3d::UnitX());
+	std::cout << "[GROUNDSPEED]" << " Vehicle Speed: " << m_groundSpeed << std::endl;
 
   	double groundSpeed = m_groundSpeed;
   	opendlv::proxy::GroundSpeedReading groundSpeedReading;
@@ -75,6 +72,39 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode GroundSpeed::body()
 
 	odcore::data::Container groundSpeedReadingContainer(groundSpeedReading);
 	getConference().send(groundSpeedReadingContainer);
+
+          	odcore::base::Mutex inputMutex;
+            {
+                // Try to read interactively updated values from RuntimeConfiguration object sent from odcockpit.
+                odcore::data::Container c = getKeyValueDataStore().get(odcockpit::RuntimeConfiguration::ID());
+                std::cout << "[odcockpit] "  "SenderStamp: " << c.getSenderStamp() << " Identifier: " << getIdentifier() << std::endl;
+                // Checking for senderStamp allows the use of multiple RuntimeConfiguration plugins in odcockpit.
+               // if (c.getSenderStamp() == 0) {
+                    odcockpit::RuntimeConfiguration rc = c.getData<odcockpit::RuntimeConfiguration>();
+                    
+                    odcore::base::Lock l(inputMutex);
+
+                    if (rc.containsKey_MapOfParameters("groundspeed")) {
+                        m_groundSpeed = rc.getValueForKey_MapOfParameters("groundspeed");
+                        std::cout << "[odcockpit:2] "  "groundspeed: " << m_groundSpeed  << std::endl;
+                 //   }
+                }
+            }
+            {
+                // Do some calculation as example.
+                odcore::base::Lock l(inputMutex);
+
+                // Send "debug" values to odcockpit for display or plotting.
+                odcockpit::SimplePlot sp;
+                sp.putTo_MapOfValues("groundspeed", m_groundSpeed);
+                sp.putTo_MapOfValues("identifier", getIdentifier());
+
+                odcore::data::Container c(sp);
+                getConference().send(c);
+            }
+
+
+
 
   }
   return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;

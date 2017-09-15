@@ -58,7 +58,7 @@ void AutoBrake::nextContainer(odcore::data::Container &a_container)
           auto groundSpeedReading = a_container.getData<opendlv::proxy::GroundSpeedReading>(); 
           
           const double groundSpeedKph = static_cast<double>(groundSpeedReading.getGroundSpeed());
-          m_groundSpeed = groundSpeedKph / 3.6;
+          m_groundSpeed = groundSpeedKph;
 
           TriggerAutobrake(m_groundSpeed);
   }
@@ -91,7 +91,7 @@ void AutoBrake::tearDown()
 
 void AutoBrake::TriggerAutobrake(double vehicleSpeed)
 {
-  
+  std::cout << "[AUTOBRAKE]" << " Vehicle Speed: " << vehicleSpeed << " Threshold: " << m_speedThreshold << std::endl;
   if (vehicleSpeed >= m_speedThreshold) {
     float autobrakeAcceleration = negativeAutobrakeAcceleration;
     opendlv::proxy::ActuationRequest actuationRequest;
