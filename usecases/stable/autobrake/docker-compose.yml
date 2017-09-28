@@ -8,15 +8,6 @@ services:
         - .:/opt/opendlv.data
         command: "/opt/od4/bin/odsupercomponent --cid=${CID} --verbose=1 --configuration=/opt/opendlv.data/configuration"
 
-    odsimirus:
-        build: .
-        network_mode: "host"
-        volumes:
-        - .:/opt/opendlv.data
-        depends_on:
-            - odsupercomponent
-        command: "/opt/od4/bin/odsimirus --cid=${CID} --freq=10"
-
     odcockpit:
         build: .
         network_mode: "host"

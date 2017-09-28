@@ -24,6 +24,7 @@
 #include <opendavinci/odcore/data/TimeStamp.h>
 #include <opendavinci/odcore/strings/StringToolbox.h>
 #include <opendavinci/odcore/wrapper/Eigen.h>
+#include <opendavinci/generated/odcockpit/RuntimeConfiguration.h>
 
 
 #include <odvdopendlvstandardmessageset/GeneratedHeaders_ODVDOpenDLVStandardMessageSet.h>
@@ -53,6 +54,7 @@ AutoBrake::~AutoBrake()
 
 void AutoBrake::nextContainer(odcore::data::Container &a_container)
 {
+  odcore::base::Mutex inputMutex;
   int32_t dataType = a_container.getDataType();
   if (dataType == opendlv::proxy::GroundSpeedReading::ID()) {
           auto groundSpeedReading = a_container.getData<opendlv::proxy::GroundSpeedReading>(); 
@@ -62,6 +64,21 @@ void AutoBrake::nextContainer(odcore::data::Container &a_container)
 
           TriggerAutobrake(m_groundSpeed);
   }
+
+    if (a_container.getDataType() == odcockpit::RuntimeConfiguration::ID()) {
+        // Try to read interactively updated values from RuntimeConfiguration object sent from odcockpit.
+        std::cout << "[odcockpit] SenderStamp: " << a_container.getSenderStamp() << " Identifier: " << getIdentifier() << std::endl;
+        odcockpit::RuntimeConfiguration rc = a_container.getData<odcockpit::RuntimeConfiguration>();
+        if (rc.containsKey_MapOfParameters("threshold")) {
+          odcore::base::Lock l(inputMutex);
+          m_speedThreshold = rc.getValueForKey_MapOfParameters("threshold");
+          std::cout << "[odcockpit:2] threshold: " << m_speedThreshold  << std::endl;
+        }
+        // Checking for senderStamp allows the use of multiple RuntimeConfiguration plugins in odcockpit.
+        // if (c.getSenderStamp() == 0) {
+        // }  
+     }
+
 
 }
 

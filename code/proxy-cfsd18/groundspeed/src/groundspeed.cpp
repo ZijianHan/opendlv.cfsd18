@@ -30,6 +30,9 @@
 
 #include "groundspeed.hpp"
 
+#include <odvdopendlvstandardmessageset/GeneratedHeaders_ODVDOpenDLVStandardMessageSet.h>
+#include <odvdopendlvdata/GeneratedHeaders_ODVDOpenDLVData.h>
+
 namespace opendlv {
 namespace proxy {
 namespace cfsd18 {
@@ -44,18 +47,32 @@ GroundSpeed::~GroundSpeed()
 {
 }
 
-void GroundSpeed::nextContainer(odcore::data::Container &/*a_container*/)
+void GroundSpeed::nextContainer(odcore::data::Container &a_container)
 {
-	
+	odcore::base::Mutex inputMutex;
 	//odcore::base::Lock l(m_mutex);
-/*
+
 	int32_t dataType = a_container.getDataType();
 	if (dataType == opendlv::proxy::ActuationRequest::ID()) {
 	    auto actuationRequestRead = a_container.getData<opendlv::proxy::ActuationRequest>();  
-        const double acceleration = static_cast<double>(actuationRequestRead.getGroundSpeed());
+        const double acceleration = static_cast<double>(actuationRequestRead.getAcceleration());
         m_groundSpeed += acceleration*0.1;
-    }*/
-  
+    }
+
+  if (a_container.getDataType() == odcockpit::RuntimeConfiguration::ID()) {
+    // Try to read interactively updated values from RuntimeConfiguration object sent from odcockpit.
+    std::cout << "[odcockpit] SenderStamp: " << a_container.getSenderStamp() << " Identifier: " << getIdentifier() << std::endl;
+    odcockpit::RuntimeConfiguration rc = a_container.getData<odcockpit::RuntimeConfiguration>();
+    if (rc.containsKey_MapOfParameters("groundspeed")) {
+      odcore::base::Lock l(inputMutex);
+      m_groundSpeed = rc.getValueForKey_MapOfParameters("groundspeed");
+      std::cout << "[odcockpit:2] groundspeed: " << m_groundSpeed  << std::endl;
+    }
+    // Checking for senderStamp allows the use of multiple RuntimeConfiguration plugins in odcockpit.
+    // if (c.getSenderStamp() == 0) {
+    // }  
+  }
+ 
 }
 
 odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode GroundSpeed::body()
@@ -74,22 +91,6 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode GroundSpeed::body()
 	getConference().send(groundSpeedReadingContainer);
 
           	odcore::base::Mutex inputMutex;
-            {
-                // Try to read interactively updated values from RuntimeConfiguration object sent from odcockpit.
-                odcore::data::Container c = getKeyValueDataStore().get(odcockpit::RuntimeConfiguration::ID());
-                std::cout << "[odcockpit] "  "SenderStamp: " << c.getSenderStamp() << " Identifier: " << getIdentifier() << std::endl;
-                // Checking for senderStamp allows the use of multiple RuntimeConfiguration plugins in odcockpit.
-               // if (c.getSenderStamp() == 0) {
-                    odcockpit::RuntimeConfiguration rc = c.getData<odcockpit::RuntimeConfiguration>();
-                    
-                    odcore::base::Lock l(inputMutex);
-
-                    if (rc.containsKey_MapOfParameters("groundspeed")) {
-                        m_groundSpeed = rc.getValueForKey_MapOfParameters("groundspeed");
-                        std::cout << "[odcockpit:2] "  "groundspeed: " << m_groundSpeed  << std::endl;
-                 //   }
-                }
-            }
             {
                 // Do some calculation as example.
                 odcore::base::Lock l(inputMutex);

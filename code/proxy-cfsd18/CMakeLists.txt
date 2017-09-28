@@ -22,6 +22,7 @@ SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake.Modules" ${CMAKE
 SET (CMAKE_MODULE_PATH "${CMAKE_INSTALL_PREFIX}/share/cmake-${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}/Modules" ${CMAKE_MODULE_PATH})
 SET (CMAKE_MODULE_PATH "${OPENDAVINCI_DIR}/share/cmake-${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}/Modules" ${CMAKE_MODULE_PATH})
 SET (CMAKE_MODULE_PATH "${ODVDOPENDLVSTANDARDMESSAGESET_DIR}/share/cmake-${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}/Modules" ${CMAKE_MODULE_PATH})
+SET (CMAKE_MODULE_PATH "${ODVDOPENDLVDATA_DIR}/share/cmake-${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}/Modules" ${CMAKE_MODULE_PATH})
 
 ###########################################################################
 # Global compile flags.
@@ -51,19 +52,21 @@ FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES (SYSTEM ${OpenCV_INCLUDE_DIRS})
 
 ###########################################################################
-# Find ODVDOpenDLVDStandardMessageSet.
-find_package(ODVDOpenDLVStandardMessageSet REQUIRED)
+# Find ODVDOpenDLVDData.
+find_package(ODVDOpenDLVData REQUIRED)
 
 ###########################################################################
 # Set common include directories.
 include_directories(SYSTEM ${OPENDAVINCI_INCLUDE_DIRS})
 include_directories(SYSTEM ${ODVDOPENDLVSTANDARDMESSAGESET_INCLUDE_DIRS})
+include_directories(SYSTEM ${ODVDOPENDLVDATA_INCLUDE_DIRS})
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 ###########################################################################
 # Set libraries to link against.
 set(LIBRARIES ${OPENDAVINCI_LIBRARIES}
-  ${ODVDOPENDLVSTANDARDMESSAGESET_LIBRARIES})
+  ${ODVDOPENDLVSTANDARDMESSAGESET_LIBRARIES}
+  ${ODVDOPENDLVDATA_LIBRARIES})
 
 ###########################################################################
 # Add subfolders with sources.
