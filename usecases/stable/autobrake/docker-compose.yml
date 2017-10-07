@@ -17,3 +17,17 @@ services:
         build: .
         network_mode: "host"
         command: "/opt/opendlv.cfsd18/bin/opendlv-logic-cfsd18-autobrake --cid=${CID} --id=1"
+
+    odcockpit:
+        build: .
+        network_mode: "host"
+        environment:
+        - DISPLAY=$DISPLAY
+        volumes:
+        - /tmp/.X11-unix:/tmp/.X11-unix
+        - .:/opt/opendlv.data
+        ipc: host
+        user: odv
+        depends_on:
+            - odsupercomponent
+        command: "/opt/od4/bin/odcockpit --cid=${CID}"
