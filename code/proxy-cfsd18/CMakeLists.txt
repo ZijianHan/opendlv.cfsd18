@@ -40,6 +40,10 @@ find_package(OpenDaVINCI REQUIRED)
 find_package(ODVDOpenDLVStandardMessageSet REQUIRED)
 
 ###########################################################################
+# Find ODVDOpenDLVDataModel.
+find_package(ODVDOpenDLVDataModel REQUIRED)
+
+###########################################################################
 # Find OpenCV.
 IF( (EXISTS "/usr/pkg/include/opencv") OR (EXISTS "/usr/pkg/include/opencv2") )
     SET(OPENCV_ROOT_DIR "/usr/pkg")
@@ -58,16 +62,19 @@ find_package(ODVDOpenDLVStandardMessageSet REQUIRED)
 # Set common include directories.
 include_directories(SYSTEM ${OPENDAVINCI_INCLUDE_DIRS})
 include_directories(SYSTEM ${ODVDOPENDLVSTANDARDMESSAGESET_INCLUDE_DIRS})
+include_directories(SYSTEM ${ODVDOPENDLVDATAMODEL_INCLUDE_DIRS})
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 ###########################################################################
 # Set libraries to link against.
 set(LIBRARIES ${OPENDAVINCI_LIBRARIES}
-  ${ODVDOPENDLVSTANDARDMESSAGESET_LIBRARIES})
+  ${ODVDOPENDLVSTANDARDMESSAGESET_LIBRARIES}
+  ${ODVDOPENDLVDATAMODEL})
 
 ###########################################################################
 # Add subfolders with sources.
 add_subdirectory(groundspeed)
+add_subdirectory(proxy-sick-lms111)
 #add_subdirectory(sensor/cameraleadvehicle)
 
 ###########################################################################
