@@ -84,3 +84,8 @@ proxy-sick.mount.roll = 0.0
 proxy-sick.mount.pitch = 0.0
 proxy-sick.mount.yaw = 0.0
 proxy-sick.record = 0  # Set to 1 to dump Lidar data in .rec format.
+
+proxy-sick.udpReceiverIP = 192.168.2.122
+proxy-sick.udpPort = 2111
+
+

@@ -32,8 +32,6 @@ services:
         build: .
         network_mode: "host"
         user: root  # This parameter will be replaced as soon as group_add parameter is available in docker-compose, cf. https://github.com/docker/compose/pull/3709.
-        devices:
-            - "/dev/ttyUSB0:/dev/ttyUSB0"
         depends_on:
             - odsupercomponent
         command: "/opt/opendlv.cfsd18/bin/opendlv-proxy-cfsd18-proxy-sick --cid=${CID} --freq=10"
