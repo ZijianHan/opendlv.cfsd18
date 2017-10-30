@@ -26,15 +26,17 @@
 
 #include <opendavinci/odcore/base/KeyValueConfiguration.h>
 #include <opendavinci/odcore/data/TimeStamp.h>
-#include <opendavinci/odcore/wrapper/SerialPort.h>
-#include <opendavinci/odcore/wrapper/SerialPortFactory.h>
+//#include <opendavinci/odcore/wrapper/SerialPort.h>
+//#include <opendavinci/odcore/wrapper/SerialPortFactory.h>
 #include <opendavinci/odcore/strings/StringToolbox.h>
 #include <opendavinci/odtools/recorder/Recorder.h>
 
 #include "opendavinci/odcore/data/Container.h"
 #include "opendavinci/odcore/io/conference/ContainerConference.h"
 #include "opendavinci/odcore/wrapper/SharedMemoryFactory.h"
-#include <opendavinci/odcore/io/udp/UDPSender.h>
+//#include <opendavinci/odcore/io/udp/UDPSender.h>
+#include <opendavinci/odcore/io/tcp/TCPConnection.h>
+#include <opendavinci/odcore/io/tcp/TCPFactory.h>
 
 #include "ProxySick.h"
 
@@ -45,20 +47,20 @@ namespace cfsd18 {
 using namespace std;
 using namespace odcore::base;
 using namespace odcore::base::module;
-using namespace odcore::io::udp;
+using namespace odcore::io::tcp;
 
 ProxySick::ProxySick(const int &argc, char **argv)
     : TimeTriggeredConferenceClientModule(argc, argv, "proxy-sick")
     , m_sick()
     , m_sickStringDecoder()
-    , m_serialPort()
+//    , m_serialPort()
     , m_baudRate()
     , m_memoryName()
     , m_memorySize(0)
-    , m_udpReceiverIP()
-    , m_udpPort(0)
+  //  , m_udpReceiverIP()
+  //  , m_udpPort(0)
     , m_sickSharedMemory(NULL)
-    , m_udpreceiver(NULL)
+   // , m_udpreceiver(NULL)
 {
 }
 
@@ -83,7 +85,7 @@ void ProxySick::setUp()
   const uint32_t INIT_BAUD_RATE = 9600; // Fixed baud rate.
   openSerialPort(m_serialPort, INIT_BAUD_RATE);*/
 
-
+  /*
   m_udpReceiverIP = getKeyValueConfiguration().getValue< string >("proxy-sick.udpReceiverIP");
   m_udpPort = getKeyValueConfiguration().getValue< uint32_t >("proxy-sick.udpPort");
   m_udpreceiver = UDPFactory::createUDPReceiver(m_udpReceiverIP, m_udpPort);
@@ -91,8 +93,25 @@ void ProxySick::setUp()
 
   m_udpreceiver->setStringListener(m_sickStringDecoder.get());
     // Start receiving bytes.
-  m_udpreceiver->start();
+  m_udpreceiver->start();*/
+    const string SICK_IP = getKeyValueConfiguration().getValue< std::string >("proxy-sick.tcpReceiverIP");
+    const uint32_t SICK_PORT = getKeyValueConfiguration().getValue< uint32_t >("proxy-sick.tcpPort");
 
+    // Separating string decoding for GPS messages received from Applanix unit from this class.
+    // Therefore, we need to pass the getConference() reference to the other instance so that it can send containers.
+
+    try {
+        m_sick = shared_ptr< TCPConnection >(TCPFactory::createTCPConnectionTo(SICK_IP, SICK_PORT));
+        m_sick->setRaw(true);
+
+        // m_sickStringDecoder is handling data from the Applanix unit.
+        m_sick->setStringListener(m_sickStringDecoder.get());
+        m_sick->start();
+    } catch (string &exception) {
+        stringstream sstrWarning;
+        sstrWarning << "[" << getName() << "] Could not connect to Sick: " << exception << endl;
+        toLogger(odcore::data::LogMessage::LogLevel::WARN, sstrWarning.str());
+}
 }
 
 
@@ -103,8 +122,12 @@ void ProxySick::tearDown()
   /*
   m_sick->stop();
   m_sick->setStringListener(NULL);*/
-  m_udpreceiver->stop();
-  m_udpreceiver->setStringListener(NULL);
+  //m_udpreceiver->stop();
+  //m_udpreceiver->setStringListener(NULL);
+      if (m_sick.get() != NULL) {
+        m_sick->stop();
+        m_sick->setStringListener(NULL);
+}
 }
 
 // This method will do the main data processing job.
@@ -130,8 +153,8 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode ProxySick::body()
     if (counter == 18) {
       cout << "Reconnecting with new baudrate" << endl;
 
-      m_udpreceiver->stop();
-      m_udpreceiver->setStringListener(NULL);
+      m_sick->stop();
+      m_sick->setStringListener(NULL);
       //openSerialPort(m_serialPort, m_baudRate);
     }
     if (counter == 20) {
@@ -161,75 +184,59 @@ void ProxySick::status()
 {
   const unsigned char statusCall[] = {0x02, 0x00, 0x01, 0x00, 0x31, 0x15, 0x12};
   const string statusString(reinterpret_cast<char const *>(statusCall), 7);
-  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  udpsender->send(statusString);
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(statusString);
 }
 
 void ProxySick::startScan()
 {
   const unsigned char streamStart[] = {0x02, 0x73, 0x45, 0x41, 0x20, 0x4C, 0x4D, 0x44, 0x73, 0x63, 0x61, 0x6E, 0x64, 0x61, 0x74, 0x61, 0x20, 0x31, 0x03};
-  const string startString(reinterpret_cast<char const *>(streamStart), 8);
-  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  udpsender->send(startString);
+  const string startString(reinterpret_cast<char const *>(streamStart), 19);
+  cout << startString << endl;
+ // std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(startString);
 }
 
 void ProxySick::stopScan()
 {
-  const unsigned char streamStop[] = {0x02, 0x00, 0x02, 0x00, 0x20, 0x25, 0x35, 0x08};
-  const string stopString(reinterpret_cast<char const *>(streamStop), 8);
-  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  udpsender->send(stopString);
+  const unsigned char streamStop[] = {0x02, 0x73, 0x45, 0x41, 0x20, 0x4C, 0x4D, 0x44, 0x73, 0x63, 0x61, 0x6E, 0x64, 0x61, 0x74, 0x61, 0x20, 0x30, 0x03};
+  const string stopString(reinterpret_cast<char const *>(streamStop), 19);
+ // std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(stopString);
 }
 
 void ProxySick::settingsMode()
 {
   const unsigned char settingsModeString[] = {0x02, 0x00, 0x0A, 0x00, 0x20, 0x00, 0x53, 0x49, 0x43, 0x4B, 0x5F, 0x4C, 0x4D, 0x53, 0xBE, 0xC5};
   const string settingString(reinterpret_cast<char const *>(settingsModeString), 16);
-  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  udpsender->send(settingString);
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(settingString);
 }
 
 void ProxySick::setCentimeterMode()
 {
   const unsigned char centimeterMode[] = {0x02, 0x00, 0x21, 0x00, 0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0xCB};
   const string centimeterString(reinterpret_cast<char const *>(centimeterMode), 39);
-  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  udpsender->send(centimeterString);
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(centimeterString);
 }
 
 void ProxySick::setBaudrate38400()
 {
   const unsigned char baudrate38400[] = {0x02, 0x00, 0x02, 0x00, 0x20, 0x40, 0x50, 0x08};
   const string baudrate38400String(reinterpret_cast<char const *>(baudrate38400), 8);
-  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  udpsender->send(baudrate38400String);
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(baudrate38400String);
 }
 
 void ProxySick::setBaudrate500k()
 { 
   const unsigned char baudrate500k[] = {0x02, 0x00, 0x02, 0x00, 0x20, 0x48, 0x58, 0x08};
   const string baudrate500kString(reinterpret_cast<char const *>(baudrate500k), 8);
-  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  udpsender->send(baudrate500kString);  
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(baudrate500kString);  
 }
-/*
-void ProxySick::openSerialPort(std::string a_serialPort, uint32_t a_baudRate)
-{
-  try {
-    m_sick = shared_ptr<odcore::wrapper::SerialPort>(odcore::wrapper::SerialPortFactory::createSerialPort(a_serialPort, a_baudRate));
-    m_sick->setStringListener(m_sickStringDecoder.get());
-    m_sick->start();
 
-    stringstream sstrInfo;
-    sstrInfo << "[" << getName() << "] Connected to SICK, waiting for configuration (takes approx. 30s)..." << endl;
-    toLogger(odcore::data::LogMessage::LogLevel::INFO, sstrInfo.str());
-  }
-  catch (string &exception) {
-    stringstream sstrWarning;
-    sstrWarning << "[" << getName() << "] Could not connect to SICK: " << exception << endl;
-    toLogger(odcore::data::LogMessage::LogLevel::WARN, sstrWarning.str());
-  }
-}*/
 
 }
 }

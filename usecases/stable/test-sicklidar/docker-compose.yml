@@ -28,11 +28,9 @@ services:
         command: "/opt/od4/bin/odsupercomponent --cid=${CID} --verbose=1 --configuration=/opt/opendlv.data/configuration"
 
     # micro service for proxy-lidar
-    proxy-lidar:
+    proxy-cfsd18-proxy-sick:
         build: .
         network_mode: "host"
         user: root  # This parameter will be replaced as soon as group_add parameter is available in docker-compose, cf. https://github.com/docker/compose/pull/3709.
-        depends_on:
-            - odsupercomponent
-        command: "/opt/opendlv.cfsd18/bin/opendlv-proxy-cfsd18-proxy-sick --cid=${CID} --freq=10"
+        command: "/opt/opendlv.cfsd18/bin/opendlv-proxy-cfsd18-proxy-sick --cid=${CID} --freq=10 --id=1"
 
