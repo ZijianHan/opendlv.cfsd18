@@ -137,10 +137,63 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode ProxySick::body()
   uint32_t counter = 0;
   while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
     counter++;
+
+    //*Log in
     if (counter == 10) {
+      cout << "Start Log In" << endl;
+      logIn();
+    }
+
+    //*Stop Scan
+    if (counter == 12) {
       cout << "Sending stop scan" << endl;
       stopScan();
     }
+
+
+    //*Set set freq. and res.
+    if (counter == 14) {
+      cout << "Setting frequency and resolution settings" << endl;
+      settingsMode();
+    }
+
+    //*Configure scandata content
+
+    if (counter == 16) {
+      cout << "Configureing scan data" << endl;
+      configScanData();
+    }
+
+    //*Configure scandata output
+    if (counter == 18) {
+      cout << "Configuring scan data output" << endl;
+      outputScanData();
+    }
+
+    //*Store parameters
+    if (counter == 20) {
+      cout << "Saving parameter settings" << endl;
+      saveParameters();
+    }
+        //*Start continiour scan
+    if (counter == 22) {
+      cout << "Start scanning" << endl;
+      startMeas();
+    }
+    //*Logout
+    if (counter == 24) {
+      cout << "Logging out" << endl;
+      logOut();
+    }
+
+    //*Start continiour scan
+    if (counter == 26) {
+      cout << "Start scanning" << endl;
+      sendData();
+      break;
+    }
+
+    /*
     if (counter == 12) {
       cout << "Sending status request" << endl;
       status();
@@ -164,12 +217,9 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode ProxySick::body()
     if (counter == 22) {
       cout << "Sending centimeter mode" << endl;
       setCentimeterMode();
-    }
-    if (counter == 24) {
-      cout << "Start scanning" << endl;
-      startScan();
-      break;
-    }
+    }*/
+
+
   }
 
   // "Do nothing" sequence in general.
@@ -188,37 +238,78 @@ void ProxySick::status()
   m_sick->send(statusString);
 }
 
-void ProxySick::startScan()
+void ProxySick::logIn()
 {
-  const unsigned char streamStart[] = {0x02, 0x73, 0x45, 0x41, 0x20, 0x4C, 0x4D, 0x44, 0x73, 0x63, 0x61, 0x6E, 0x64, 0x61, 0x74, 0x61, 0x20, 0x31, 0x03};
-  const string startString(reinterpret_cast<char const *>(streamStart), 19);
-  cout << startString << endl;
- // std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  m_sick->send(startString);
+  const unsigned char statusCall[] = {0x02, 0x73, 0x4D, 0x4E, 0x20, 0x53, 0x65, 0x74, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x4D, 0x6F, 0x64, 0x65, 0x20, 0x30, 0x33, 0x20, 0x46, 0x34, 0x37, 0x32, 0x34, 0x37, 0x34, 0x34, 0x03};
+  const string statusString(reinterpret_cast<char const *>(statusCall), 31);
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(statusString);
 }
 
 void ProxySick::stopScan()
 {
-  const unsigned char streamStop[] = {0x02, 0x73, 0x45, 0x41, 0x20, 0x4C, 0x4D, 0x44, 0x73, 0x63, 0x61, 0x6E, 0x64, 0x61, 0x74, 0x61, 0x20, 0x30, 0x03};
-  const string stopString(reinterpret_cast<char const *>(streamStop), 19);
+  const unsigned char streamStop[] = {0x02, 0x73, 0x4D, 0x4E, 0x20, 0x4C, 0x4D, 0x43, 0x73, 0x74, 0x6F, 0x70, 0x6D, 0x65, 0x61, 0x73, 0x03};
+  const string stopString(reinterpret_cast<char const *>(streamStop), 17);
  // std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
   m_sick->send(stopString);
 }
 
 void ProxySick::settingsMode()
 {
-  const unsigned char settingsModeString[] = {0x02, 0x00, 0x0A, 0x00, 0x20, 0x00, 0x53, 0x49, 0x43, 0x4B, 0x5F, 0x4C, 0x4D, 0x53, 0xBE, 0xC5};
-  const string settingString(reinterpret_cast<char const *>(settingsModeString), 16);
+  const unsigned char settingsModeString[] = {0x02, 0x73, 0x4D, 0x4E, 0x20, 0x6D, 0x4C, 0x4D, 0x50, 0x73, 0x65, 0x74, 0x73, 0x63, 0x61, 0x6E, 0x63, 0x66, 0x67, 0x20, 0x31, 0x33, 0x38, 0x38, 0x20, 0x31, 0x20, 0x39, 0x43, 0x34, 0x20, 0x46, 0x46, 0x46, 0x39, 0x32, 0x32, 0x33, 0x30, 0x20, 0x32, 0x32, 0x35, 0x35, 0x31, 0x30, 0x03};
+  const string settingString(reinterpret_cast<char const *>(settingsModeString), 47);
 //  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
   m_sick->send(settingString);
 }
 
-void ProxySick::setCentimeterMode()
+void ProxySick::configScanData()
 {
-  const unsigned char centimeterMode[] = {0x02, 0x00, 0x21, 0x00, 0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0xCB};
-  const string centimeterString(reinterpret_cast<char const *>(centimeterMode), 39);
+  const unsigned char settingsModeString[] = {0x02, 0x73, 0x57, 0x4E, 0x20, 0x4C, 0x4D, 0x44, 0x73, 0x63, 0x61, 0x6E, 0x64, 0x61, 0x74, 0x61, 0x63, 0x66, 0x67, 0x20, 0x30, 0x31, 0x20, 0x30, 0x30, 0x20, 0x31, 0x20, 0x31, 0x20, 0x30, 0x20, 0x30, 0x30, 0x20, 0x30, 0x30, 0x20, 0x30, 0x20, 0x30, 0x20, 0x30, 0x20, 0x30, 0x20, 0x2B, 0x31, 0x03};
+  const string settingString(reinterpret_cast<char const *>(settingsModeString), 49);
 //  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  m_sick->send(centimeterString);
+  m_sick->send(settingString);
+}
+
+void ProxySick::outputScanData()
+{
+  const unsigned char settingsModeString[] = {0x02, 0x73, 0x57, 0x4E, 0x20, 0x4C, 0x4D, 0x50, 0x6F, 0x75, 0x74, 0x70, 0x75, 0x74, 0x52, 0x61, 0x6E, 0x67, 0x65, 0x20, 0x31, 0x20, 0x39, 0x43, 0x34, 0x20, 0x46, 0x46, 0x46, 0x39, 0x32, 0x32, 0x33, 0x30, 0x20, 0x32, 0x32, 0x35, 0x35, 0x31, 0x30, 0x03};
+  const string settingString(reinterpret_cast<char const *>(settingsModeString), 42);
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(settingString);
+}
+
+void ProxySick::saveParameters()
+{
+  const unsigned char settingsModeString[] = {0x02, 0x73, 0x4D, 0x4E, 0x20, 0x6D, 0x45, 0x45, 0x77, 0x72, 0x69, 0x74, 0x65, 0x61, 0x6C, 0x6C, 0x03};
+  const string settingString(reinterpret_cast<char const *>(settingsModeString), 17);
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(settingString);
+}
+
+void ProxySick::startMeas()
+{
+  const unsigned char streamStart[] = {0x02, 0x73, 0x4D, 0x4E, 0x20, 0x4C, 0x4D, 0x43, 0x73, 0x74, 0x61, 0x72, 0x74, 0x6D, 0x65, 0x61, 0x73, 0x03};
+  const string startString(reinterpret_cast<char const *>(streamStart), 18);
+  cout << startString << endl;
+ // std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(startString);
+}
+
+void ProxySick::logOut()
+{
+  const unsigned char settingsModeString[] = {0x02, 0x73, 0x4D, 0x4E, 0x20, 0x52, 0x75, 0x6E, 0x03};
+  const string settingString(reinterpret_cast<char const *>(settingsModeString), 9);
+//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(settingString);
+}
+
+void ProxySick::sendData()
+{
+  const unsigned char streamStart[] = {0x02, 0x73, 0x45, 0x4E, 0x20, 0x4C, 0x4D, 0x44, 0x73, 0x63, 0x61, 0x6E, 0x64, 0x61, 0x74, 0x61, 0x20, 0x31, 0x03};
+  const string startString(reinterpret_cast<char const *>(streamStart), 19);
+  cout << startString << endl;
+ // std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
+  m_sick->send(startString);
 }
 
 void ProxySick::setBaudrate38400()
@@ -229,13 +320,6 @@ void ProxySick::setBaudrate38400()
   m_sick->send(baudrate38400String);
 }
 
-void ProxySick::setBaudrate500k()
-{ 
-  const unsigned char baudrate500k[] = {0x02, 0x00, 0x02, 0x00, 0x20, 0x48, 0x58, 0x08};
-  const string baudrate500kString(reinterpret_cast<char const *>(baudrate500k), 8);
-//  std::shared_ptr<UDPSender> udpsender(UDPFactory::createUDPSender(m_udpReceiverIP, m_udpPort));
-  m_sick->send(baudrate500kString);  
-}
 
 
 }

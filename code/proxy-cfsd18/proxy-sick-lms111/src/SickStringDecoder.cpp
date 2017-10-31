@@ -259,6 +259,7 @@ void SickStringDecoder::nextString(std::string const &a_string)
   }
 
   string s = m_buffer.str();
+  cout << s << endl;
   // We need at least 10 bytes before we can continue.
   if (s.size() >= 10) {
     while (s.size() > 0) {

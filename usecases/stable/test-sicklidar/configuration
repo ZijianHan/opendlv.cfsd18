@@ -85,7 +85,7 @@ proxy-sick.mount.pitch = 0.0
 proxy-sick.mount.yaw = 0.0
 proxy-sick.record = 0  # Set to 1 to dump Lidar data in .rec format.
 
-proxy-sick.tcpReceiverIP = 192.168.31.245
+proxy-sick.tcpReceiverIP = 192.168.2.122
 proxy-sick.tcpPort = 2111
 
 

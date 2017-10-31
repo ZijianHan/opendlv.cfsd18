@@ -70,12 +70,19 @@ class ProxySick : public odcore::base::module::TimeTriggeredConferenceClientModu
 
    private:
     void status();
-    void startScan();
+    void logIn();
     void stopScan();
     void settingsMode();
-    void setCentimeterMode();
+    void configScanData();
+    void outputScanData();
+    void saveParameters();
+    void startMeas();
+    void logOut();
+    void sendData();
+    
+    
+    
     void setBaudrate38400();
-    void setBaudrate500k();
 //    void openSerialPort(std::string, uint32_t);
    private:
     std::shared_ptr<odcore::io::tcp::TCPConnection> m_sick;
