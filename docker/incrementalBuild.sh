@@ -35,9 +35,9 @@ CCACHE_DIR=/opt/ccache PATH=/usr/lib/ccache:/opt/od4/bin:$PATH cmake -D CXXTEST_
 CCACHE_DIR=/opt/ccache PATH=/usr/lib/ccache:/opt/od4/bin:$PATH make -j4 && make test && make install
 EOF
 
-chmod 755 /opt/opendlv.sim.build/build.sh
-chown $UID_AS:$UID_AS /opt/opendlv.sim.build/build.sh
+chmod 755 /opt/opendlv.cfsd18.build/build.sh
+chown $UID_AS:$UID_AS /opt/opendlv.cfsd18.build/build.sh
 chown -R $UID_AS:$UID_AS /opt
 
-su -m `getent passwd $UID_AS|cut -f1 -d":"` -c /opt/opendlv.sim.build/build.sh
+su -m `getent passwd $UID_AS|cut -f1 -d":"` -c /opt/opendlv.cfsd18.build/build.sh
 

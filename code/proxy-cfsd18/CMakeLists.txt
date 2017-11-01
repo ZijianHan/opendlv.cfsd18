@@ -75,7 +75,7 @@ set(LIBRARIES ${OPENDAVINCI_LIBRARIES}
 # Add subfolders with sources.
 add_subdirectory(groundspeed)
 add_subdirectory(proxy-sick-lms111)
-#add_subdirectory(sensor/cameraleadvehicle)
+add_subdirectory(proxy-camera-axis)
 
 ###########################################################################
 # Create packages for selected Linux distributions.
