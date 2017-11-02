@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include <cmath>
-
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -42,7 +42,18 @@ SickStringDecoder::SickStringDecoder(odcore::io::conference::ContainerConference
     , m_header(false)
     , m_startConfirmed(false)
     , m_latestReading()
+    , m_position()
+    , m_measurements()
+    , m_startResponse()
+    , m_measurementHeader()
+    , m_minimumMessageLength(10)
     , m_buffer()
+    , m_lidarDataFile()
+    , m_messageFile()
+    , m_headerFile()
+    
+
+    
 {
   m_position[0] = a_x;
   m_position[1] = a_y;
@@ -59,62 +70,90 @@ SickStringDecoder::SickStringDecoder(odcore::io::conference::ContainerConference
   m_startResponse[8] = 0x16; //17?
   m_startResponse[9] = 0x0A;
 
-  m_measurementHeader[0] = 0x02;
-  m_measurementHeader[1] = 0x80;
-  m_measurementHeader[2] = 0xD6;
-  m_measurementHeader[3] = 0x02;
-  m_measurementHeader[4] = 0xB0;
-  m_measurementHeader[5] = 0x69;
-  m_measurementHeader[6] = 0x01; //01 for centimeters, 41 for millimeters
+  m_measurementHeader[0] = 0x73;
+  m_measurementHeader[1] = 0x53;
+  m_measurementHeader[2] = 0x4e;
+  m_measurementHeader[3] = 0x20;
+  m_measurementHeader[4] = 0x4c;
+  m_measurementHeader[5] = 0x4d;
+  m_measurementHeader[6] = 0x44;
+  m_measurementHeader[7] = 0x73;
+  m_measurementHeader[8] = 0x63;
+  m_measurementHeader[9] = 0x61;
+  m_measurementHeader[10] = 0x6e;
+  m_measurementHeader[11] = 0x64;
+  m_measurementHeader[12] = 0x61;
+  m_measurementHeader[13] = 0x74;
+  m_measurementHeader[14] = 0x61;
+  m_measurementHeader[15] = 0x20;
+  m_measurementHeader[16] = 0x31;
+  m_measurementHeader[17] = 0x20;
+  m_measurementHeader[18] = 0x45;
+  m_measurementHeader[19] = 0x42;
+  m_measurementHeader[20] = 0x38;
+  m_measurementHeader[21] = 0x20;
+  m_measurementHeader[22] = 0x31;
+  m_measurementHeader[23] = 0x20;
+  m_measurementHeader[24] = 0x30;
+  m_measurementHeader[25] = 0x20;
+  m_measurementHeader[26] = 0x31;
+  m_measurementHeader[27] = 0x39;
+  m_measurementHeader[28] = 0x45;
+  m_measurementHeader[29] = 0x30;
+  m_measurementHeader[30] = 0x20;
+  m_measurementHeader[31] = 0x34;
+  m_measurementHeader[32] = 0x20;
+  m_measurementHeader[33] = 0x46;
+  m_measurementHeader[34] = 0x41;
+  m_measurementHeader[35] = 0x42;
+  m_measurementHeader[36] = 0x36;
+  m_measurementHeader[37] = 0x32;
+  m_measurementHeader[38] = 0x37;
+  m_measurementHeader[39] = 0x30;
+  m_measurementHeader[40] = 0x32;
+  m_measurementHeader[41] = 0x20;
+  m_measurementHeader[42] = 0x46;
+  m_measurementHeader[43] = 0x41;
+  m_measurementHeader[44] = 0x42;
+  m_measurementHeader[45] = 0x36;
+  m_measurementHeader[46] = 0x33;
+  m_measurementHeader[47] = 0x31;
+  m_measurementHeader[48] = 0x45;
+  m_measurementHeader[49] = 0x42;
+  m_measurementHeader[50] = 0x20;
+  m_measurementHeader[51] = 0x30;
+  m_measurementHeader[52] = 0x20;
+  m_measurementHeader[53] = 0x30;
+  m_measurementHeader[54] = 0x20;
+  m_measurementHeader[55] = 0x30;
+  m_measurementHeader[56] = 0x20;
+  m_measurementHeader[57] = 0x30;
+  m_measurementHeader[58] = 0x20;
+  m_measurementHeader[59] = 0x30;
+  m_measurementHeader[60] = 0x20;
+  m_measurementHeader[61] = 0x31;
+  m_measurementHeader[62] = 0x33;
+  m_measurementHeader[63] = 0x38;
+  m_measurementHeader[64] = 0x38;
+  m_measurementHeader[65] = 0x20;
+  m_measurementHeader[66] = 0x31;
+  m_measurementHeader[67] = 0x36;
+  m_measurementHeader[68] = 0x38;
+  m_measurementHeader[69] = 0x20;
+  m_measurementHeader[70] = 0x30;
+  m_measurementHeader[71] = 0x20;
+  m_measurementHeader[72] = 0x32;
 
-  m_centimeterResponse[0] = 0x06;
-  m_centimeterResponse[1] = 0x02;
-  m_centimeterResponse[2] = 0x80;
-  m_centimeterResponse[3] = 0x25;
-  m_centimeterResponse[4] = 0x00;
-  m_centimeterResponse[5] = 0xF7;
-  m_centimeterResponse[6] = 0x00;
-  m_centimeterResponse[7] = 0x00;
-  m_centimeterResponse[8] = 0x00;
-  m_centimeterResponse[9] = 0x46;
-  m_centimeterResponse[10] = 0x00;
-  m_centimeterResponse[11] = 0x00;
-  m_centimeterResponse[12] = 0x0D;
-  m_centimeterResponse[13] = 0x00;
-  m_centimeterResponse[14] = 0x00;
-  m_centimeterResponse[15] = 0x00;
-  m_centimeterResponse[16] = 0x02;
-  m_centimeterResponse[17] = 0x02;
-  m_centimeterResponse[18] = 0x00;
-  m_centimeterResponse[19] = 0x00;
-  m_centimeterResponse[20] = 0x00;
-  m_centimeterResponse[21] = 0x00;
-  m_centimeterResponse[22] = 0x00;
-  m_centimeterResponse[23] = 0x00;
-  m_centimeterResponse[24] = 0x00;
-  m_centimeterResponse[25] = 0x00;
-  m_centimeterResponse[26] = 0x00;
-  m_centimeterResponse[27] = 0x00;
-  m_centimeterResponse[28] = 0x00;
-  m_centimeterResponse[29] = 0x00;
-  m_centimeterResponse[30] = 0x00;
-  m_centimeterResponse[31] = 0x00;
-  m_centimeterResponse[32] = 0x00;
-  m_centimeterResponse[33] = 0x00;
-  m_centimeterResponse[34] = 0x00;
-  m_centimeterResponse[35] = 0x00;
-  m_centimeterResponse[36] = 0x00;
-  m_centimeterResponse[37] = 0x00;
-  m_centimeterResponse[38] = 0x00;
-  m_centimeterResponse[39] = 0x02;
-  m_centimeterResponse[40] = 0xCB;
-  m_centimeterResponse[41] = 0x10; //11?
-  m_centimeterResponse[42] = 0xB0; //B1?
-  m_centimeterResponse[43] = 0x11;
+
+  m_lidarDataFile.open("lidatDataRaw.txt", ios::out);
+  m_messageFile.open("message.txt", ios::out);
+  m_headerFile.open("header.txt", ios::out);
 }
 
 SickStringDecoder::~SickStringDecoder()
 {
+    m_lidarDataFile.close();
+    m_messageFile.close();
 }
 
 void SickStringDecoder::convertToDistances()
@@ -163,9 +202,9 @@ void SickStringDecoder::convertToDistances()
 
 bool SickStringDecoder::tryDecode()
 {
-  const uint32_t HEADER_LENGTH = 7;
-  const uint32_t START_LENGTH = 10;
-  const uint32_t MAX_NUMBER_OF_BYTES_PER_PAYLOAD = 722;
+  const uint32_t HEADER_LENGTH = 20;
+  const uint32_t START_LENGTH = 6;
+  const uint32_t MAX_NUMBER_OF_BYTES_PER_PAYLOAD = 1080;
   static uint32_t byteCounter = 0;
   const string s = m_buffer.str();
 
@@ -210,22 +249,6 @@ bool SickStringDecoder::tryDecode()
     // Not found, try next state.
   }
 
-//    // Not working reliably.
-//    // Find centimeter mode.
-//    if ((!m_centimeterMode) && (m_buffer.str().size() >= 44)) {
-//        m_centimeterMode = true;
-//        for (uint32_t i = 0; i < 44; i++) {
-//            cout << "s = " << (int)(uint8_t)s.at(i) << ", resp = " << (int)(uint8_t)m_centimeterResponse[i] << endl;
-//            m_centimeterMode &= ((int)(uint8_t)s.at(i) == (int)(uint8_t) m_centimeterResponse[i]);
-//        }
-//        if (m_centimeterMode) {
-//          cout << "Received centimeterMode." << endl;
-//            // Remove 10 bytes.
-//            m_buffer.str(m_buffer.str().substr(44));
-//            m_buffer.seekg(0, ios_base::end);
-//            return true;
-//        }
-//    }
 
   // Find start confirmation.
   if (s.size() >= START_LENGTH) {
@@ -259,9 +282,17 @@ void SickStringDecoder::nextString(std::string const &a_string)
   }
 
   string s = m_buffer.str();
+  // Print out the raw lidar data
   cout << s << endl;
+  // Save lidar raw data
+  m_lidarDataFile << s;
+  m_lidarDataFile << endl;
+
+  m_messageFile << s.size();
+  m_messageFile << endl;
+
   // We need at least 10 bytes before we can continue.
-  if (s.size() >= 10) {
+  if (s.size() >= m_minimumMessageLength) {
     while (s.size() > 0) {
       if (tryDecode()) {
         // If decoding succeeds, don't modify buffer but try to consume more.

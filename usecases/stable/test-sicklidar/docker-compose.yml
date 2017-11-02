@@ -31,6 +31,9 @@ services:
     proxy-cfsd18-proxy-sick:
         build: .
         network_mode: "host"
+        volumes:
+        - ~/storage1:/opt/recordings
         user: root  # This parameter will be replaced as soon as group_add parameter is available in docker-compose, cf. https://github.com/docker/compose/pull/3709.
+        working_dir: "/opt/recordings"
         command: "/opt/opendlv.cfsd18/bin/opendlv-proxy-cfsd18-proxy-sick --cid=${CID} --freq=10 --id=1"
 
