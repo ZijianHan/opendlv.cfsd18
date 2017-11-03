@@ -276,11 +276,15 @@ bool SickStringDecoder::tryDecode()
 
 void SickStringDecoder::nextString(std::string const &a_string)
 {
+  //std::stringstream buffer;
+  m_messageFile << a_string.size();
+  m_messageFile << endl;
   for (uint32_t i = 0; i < a_string.size(); i++) {
     char c = a_string.at(i);
     m_buffer.write(&c, sizeof(char));
+    //buffer.write(&c, sizeof(char));
   }
-
+  
   string s = m_buffer.str();
   // Print out the raw lidar data
   cout << s << endl;
@@ -288,13 +292,13 @@ void SickStringDecoder::nextString(std::string const &a_string)
   m_lidarDataFile << s;
   m_lidarDataFile << endl;
 
-  m_messageFile << s.size();
-  m_messageFile << endl;
+
 
   // We need at least 10 bytes before we can continue.
+  
   if (s.size() >= m_minimumMessageLength) {
     while (s.size() > 0) {
-      if (tryDecode()) {
+      if (false) {
         // If decoding succeeds, don't modify buffer but try to consume more.
       }
       else {
@@ -305,6 +309,7 @@ void SickStringDecoder::nextString(std::string const &a_string)
       s = m_buffer.str();
     }
   }
+  
 
   // Always add at the end for more bytes to buffer.
   m_buffer.seekg(0, ios_base::end);
