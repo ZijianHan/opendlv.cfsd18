@@ -25,6 +25,7 @@
 #include <opendavinci/odcore/io/StringListener.h>
 #include <opendavinci/odcore/io/conference/ContainerConference.h>
 #include "odvdopendlvdatamodel/generated/opendlv/core/sensors/EchoReading.h"
+#include <fstream>
 
 namespace opendlv {
 namespace proxy {
@@ -55,11 +56,16 @@ class SickStringDecoder : public odcore::io::StringListener {
 
   opendlv::core::sensors::EchoReading m_latestReading;
   double m_position[3];
-  unsigned char m_measurements[1000];
-  unsigned char m_startResponse[10];
-  unsigned char m_measurementHeader[7];
-  unsigned char m_centimeterResponse[44];
+  unsigned char m_measurements[1080];
+  unsigned char m_startResponse[7];
+  unsigned char m_measurementHeader[72];
+  uint32_t m_minimumMessageLength;
   std::stringstream m_buffer;
+  std::ofstream m_lidarDataFile;
+  std::ofstream m_messageFile;
+  std::ofstream m_headerFile;
+  
+  
 };
 
 }
