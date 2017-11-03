@@ -17,19 +17,20 @@
 
 version: '2'
 
-
 services:
+    # Micro-service for odsupercomponent.
     odsupercomponent:
-        image: ${IMAGE}
-        network_mode: "host"
+        build: .
+        image: seresearch/opendavinci-ubuntu-16.04-complete:latest
+        network_mode: host
         volumes:
-        - .:/opt/opendlv.data
-        command: "/opt/od4/bin/odsupercomponent --cid=${CID} --verbose=1 --configuration=/opt/opendlv.data/configuration"
+            - .:/opt/opendlv.core.configuration
+        command: "/opt/od4/bin/odsupercomponent --cid=${CID} --verbose=1 --configuration=/opt/opendlv.core.configuration/configuration"
 
 
     # Micro-service for proxy-camera-axis0.
     proxy-camera-axis0:
-        image: ${IMAGE}
+        build: .
         depends_on:
             - odsupercomponent
         environment:
@@ -41,18 +42,6 @@ services:
             - .:/opt/opendlv.core.configuration
         network_mode: host
         ipc: host
-        command: "/opt/opendlv.cfsd18/bin/opendlv-proxy-cfsd18-proxy-camera-axis --cid=${CID} --freq=20 --id=0"
-
-    odrecorderh264:
-        image: ${IMAGE}
-        depends_on:
-            - odsupercomponent
-        volumes:
-            - ~/storage1:/opt/recordings
-        user: root  
-        network_mode: host
-        ipc: host
-        working_dir: "/opt/recordings"
-        command: "/opt/od4/bin/odrecorderh264 --cid=${CID} --freq=20"
+        command: "/opt/opendlv.core/bin/opendlv-core-system-proxy-camera-axis --cid=${CID} --freq=20 --id=0"
 
     

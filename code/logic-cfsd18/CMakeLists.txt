@@ -66,13 +66,16 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 # Set libraries to link against.
 set(LIBRARIES ${OPENDAVINCI_LIBRARIES}
   ${ODVDOPENDLVSTANDARDMESSAGESET_LIBRARIES}
-  ${ODVDOPENDLVDATA_LIBRARIES})
+  ${ODVDOPENDLVDATA_LIBRARIES}
+  ${OPENCV_LIBRARIES}
+  )
 
 ###########################################################################
 # Add subfolders with sources.
 add_subdirectory(flowbend)
 add_subdirectory(autobrake)
-#add_subdirectory(sensor/cameraleadvehicle)
+#add_subdirectory(perception/detectvehicle)
+add_subdirectory(perception/detectcone)
 
 ###########################################################################
 # Create packages for selected Linux distributions.

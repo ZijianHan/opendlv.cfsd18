@@ -24,19 +24,10 @@
 # camera resolution for example (640x480x3 --> 1000000 for memorySegment,
 # 1280x720x3 --> 2800000).
 global.buffer.memorySegmentSize = 2800000 # Size of a memory segment in bytes.
-global.buffer.numberOfMemorySegments = 20 # Number of memory segments.
+global.buffer.numberOfMemorySegments = 4  # Number of memory segments.
 
 # The following key describes the list of modules expected to participate in this --cid session.
-global.session.expectedModules = proxy-camera-axis-axis
-
-
-###############################################################################
-###############################################################################
-#
-# CONFIGURATION FOR ODCOCKPIT
-#
-odcockpit.plugins = configurationviewer,healthstatusviewer,livefeed,logmessage,sessionviewer,sharedimageviewer # List of modules to show in odcockpit; leave blank to show all.
-odcockpit.directoriesForSharedLibaries = /opt # List of directories to search for libodvd*.so files.
+global.session.expectedModules = copplar-control-example
 
 
 ###############################################################################
@@ -71,14 +62,12 @@ odsupercomponent.pulsetimeack.yield = 5000 # (in microseconds)
 # List of modules (without blanks) that will not get a pulse message from odsupercomponent.
 odsupercomponent.pulsetimeack.exclude = odcockpit
 
-
 ###############################################################################
 ###############################################################################
 #
 # CONFIGURATION FOR PROXY
 #
-
-proxy-camera-axis:0.debug = 1               # 1 = show recording (requires X11), 0 = otherwise.
+proxy-camera-axis:0.debug = 0               # 1 = show recording (requires X11), 0 = otherwise.
 proxy-camera-axis:0.name = front-left
 proxy-camera-axis:0.address = 192.168.0.90
 proxy-camera-axis:0.username = root
@@ -88,12 +77,11 @@ proxy-camera-axis:0.height = 720
 proxy-camera-axis:0.calibrationfile = /opt/opendlv.core.configuration/file.yml  # This file must be accessible from within the Docker container.
 
 
+
 ###############################################################################
 ###############################################################################
 #
-# CONFIGURATION FOR TOOLS
+# CONFIGURATION FOR LOGIC
 #
 
-
-core-tool-camera-projection.cameraname = rear-left
-
+odcockpit.directoriesForSharedLibaries = /opt/opendlv.cfsd18

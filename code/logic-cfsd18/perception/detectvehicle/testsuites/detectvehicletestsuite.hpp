@@ -1,6 +1,5 @@
 /**
- * proxy-camera-axis - Interface to network cameras from Axis.
- * Copyright (C) 2016 Christian Berger
+ * Copyright (C) 2017 Chalmers Revere
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,9 +16,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "ProxyCamera.h"
+#ifndef LOGIC_CFSD18_PERCEPTION_DETECTVEHICLE_TESTSUITE_HPP
+#define LOGIC_CFSD18_PERCEPTION_DETECTVEHICLE_TESTSUITE_HPP
 
-int32_t main(int32_t argc, char **argv) {
-    opendlv::proxy::cfsd18::ProxyCamera camera(argc, argv);
-    return camera.runModule();
-}
+#include "cxxtest/TestSuite.h"
+
+// Include local header files.
+#include "../include/detectvehicle.hpp"
+
+class DetectVehicleTest : public CxxTest::TestSuite {
+   public:
+    void setUp() {}
+
+    void tearDown() {}
+
+    void testApplication() {
+        TS_ASSERT(true);
+    }
+};
+
+#endif
